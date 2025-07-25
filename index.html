@@ -868,17 +868,40 @@
             nextQuestion();
         }
         
+        // 改进的评分逻辑
+        function calculateUserLevel() {
+            let levelScores = {};
+            
+            // 统计各级别答对情况
+            currentTest.questions.forEach(question => {
+                if (!levelScores[question.level]) {
+                    levelScores[question.level] = { correct: 0, total: 0 };
+                }
+                levelScores[question.level].total++;
+                if (question.correct) {
+                    levelScores[question.level].correct++;
+                }
+            });
+            
+            // 从高级别向低级别检查，找到用户能稳定掌握的最高级别
+            for (let level = 6; level >= 1; level--) {
+                if (levelScores[level] && levelScores[level].total >= 3) {
+                    const accuracy = levelScores[level].correct / levelScores[level].total;
+                    if (accuracy >= 0.7) { // 该级别正确率70%以上
+                        return level;
+                    }
+                }
+            }
+            
+            return 1; // 默认初中级别
+        }
+        
         // 显示测试结果
         function showTestResult() {
             const accuracy = (currentTest.correctAnswers / currentTest.questions.length) * 100;
             
-            // 根据正确率和答对的高级词汇确定用户级别
-            let userLevel = 1;
-            if (accuracy >= 80) userLevel = 6;
-            else if (accuracy >= 70) userLevel = 5;
-            else if (accuracy >= 60) userLevel = 4;
-            else if (accuracy >= 50) userLevel = 3;
-            else if (accuracy >= 40) userLevel = 2;
+            // 使用改进的评分逻辑
+            const userLevel = calculateUserLevel();
             
             currentTest.userLevel = userLevel;
             learningData.userLevel = userLevel;
