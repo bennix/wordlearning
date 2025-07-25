@@ -1,0 +1,1842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能词汇学习系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .word-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .word-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .word-translation {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .word-tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin: 2px;
+            font-size: 14px;
+        }
+        
+        .word-preview {
+            margin: 10px 0;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .option {
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #e3f2fd;
+        }
+
+        .option.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .option.correct {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .option.wrong {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+
+        .level-result {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+
+        .level-badge {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .study-plan {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .plan-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .review-schedule {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .review-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .review-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .review-item.due {
+            border-color: #ff9800;
+            background: #fff3e0;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 智能词汇学习系统</h1>
+            <p>科学评估词汇量，制定个性化学习计划，遵循遗忘曲线优化复习</p>
+        </div>
+
+        <div class="card">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('test')">📊 词汇量测试</button>
+                <button class="nav-tab" onclick="switchTab('study')">📚 学习计划</button>
+                <button class="nav-tab" onclick="switchTab('review')">🔄 复习管理</button>
+                <button class="nav-tab" onclick="switchTab('stats')">📈 学习统计</button>
+            </div>
+
+            <!-- 词汇量测试 -->
+            <div id="test" class="tab-content active">
+                <h2>📊 词汇量水平测试</h2>
+                <p>通过科学的测试方法，准确评估您的词汇量水平</p>
+                
+                <div id="test-start" class="text-center">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="test-progress" style="width: 0%"></div>
+                    </div>
+                    <p>测试将从各个级别随机选择单词，根据您的答题情况智能调整难度</p>
+                    <button class="btn" onclick="startTest()">开始测试</button>
+                </div>
+
+                <div id="test-question" class="hidden">
+                    <div class="word-card">
+                        <div class="word-title" id="current-word" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                            <span id="test-word-text"></span>
+                            <button class="btn" onclick="speakTestWord()" style="padding: 8px 15px; font-size: 14px; background: #2196F3;">🔊 发音</button>
+                        </div>
+                        <div class="word-translation">请选择正确的中文释义：</div>
+                        <div class="options" id="options-container"></div>
+                        <div class="text-center">
+                            <button class="btn" id="next-btn" onclick="nextQuestion()" disabled>下一题</button>
+                            <button class="btn" onclick="skipQuestion()">跳过</button>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p>题目 <span id="question-num">1</span> / <span id="total-questions">20</span></p>
+                    </div>
+                </div>
+
+                <div id="test-result" class="hidden">
+                    <div class="level-result">
+                        <div class="level-badge" id="result-level"></div>
+                        <h3 id="result-title"></h3>
+                        <p id="result-description"></p>
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="correct-count">0</div>
+                                <div class="stat-label">答对题数</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="accuracy-rate">0%</div>
+                                <div class="stat-label">正确率</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="estimated-vocab">0</div>
+                                <div class="stat-label">估计词汇量</div>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="generateStudyPlan()">生成学习计划</button>
+                        <button class="btn" onclick="restartTest()">重新测试</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 学习计划 -->
+            <div id="study" class="tab-content">
+                <h2>📚 个性化学习计划</h2>
+                <div id="no-plan">
+                    <p>请先完成词汇量测试，系统将为您生成个性化的学习计划。</p>
+                    <button class="btn" onclick="switchTab('test')">去测试</button>
+                </div>
+                
+                <div id="study-plan-content" class="hidden">
+                    <div class="study-plan">
+                        <h3>🎯 当前学习目标</h3>
+                        <div id="current-goal"></div>
+                    </div>
+                    
+                    <div class="study-plan">
+                        <h3>📋 学习计划</h3>
+                        <div id="plan-list"></div>
+                    </div>
+                    
+                    <div class="study-plan">
+                        <h3>📖 今日学习</h3>
+                        <div id="daily-words"></div>
+                        <button class="btn" onclick="startDailyStudy()">开始今日学习</button>
+                    </div>
+                </div>
+                
+                <!-- 学习界面 -->
+                <div id="study-session" class="hidden">
+                    <div class="word-card">
+                        <div class="text-center">
+                            <h3 id="study-level-title">正在学习：初中级别</h3>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="study-progress" style="width: 0%"></div>
+                            </div>
+                            <p>单词 <span id="study-word-num">1</span> / <span id="study-total-words">20</span></p>
+                        </div>
+                        
+                        <div class="word-title" id="study-current-word" style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+                            <span id="study-word-text">abandon</span>
+                            <button class="btn" onclick="speakWord()" style="padding: 8px 15px; font-size: 14px; background: #2196F3;">🔊 发音</button>
+                        </div>
+                        <div class="word-translation" id="study-word-translation">v. 放弃，抛弃</div>
+                        
+                        <!-- 例句显示 -->
+                        <div id="study-word-phrases" class="word-translation" style="margin-top: 15px; font-style: italic;"></div>
+                        
+                        <div class="text-center" style="margin-top: 30px;">
+                            <button class="btn" onclick="markWordKnown(true)" style="background: #4caf50;">✓ 认识</button>
+                            <button class="btn" onclick="markWordKnown(false)" style="background: #f44336;">✗ 不认识</button>
+                            <button class="btn" onclick="skipStudyWord()">跳过</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 学习完成结果 -->
+                <div id="study-result" class="hidden">
+                    <div class="level-result">
+                        <div class="level-badge">🎉</div>
+                        <h3 id="study-result-title">学习完成！</h3>
+                        <p id="study-result-description">恭喜您完成了本次学习任务</p>
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="study-known-count">0</div>
+                                <div class="stat-label">认识的词</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="study-unknown-count">0</div>
+                                <div class="stat-label">不认识的词</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="study-mastery-rate">0%</div>
+                                <div class="stat-label">掌握率</div>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="finishStudySession()">完成学习</button>
+                        <button class="btn" onclick="reviewUnknownWords()">复习不认识的词</button>
+                        <button class="btn" onclick="startMasteryTest()" style="background: #FF9800;">🎯 掌握度测试</button>
+                    </div>
+                </div>
+                
+                <!-- 掌握度测试界面 -->
+                <div id="mastery-test" class="hidden">
+                    <div class="level-result">
+                        <div class="level-badge">🧠</div>
+                        <h3 id="test-title">掌握度测试</h3>
+                        <p id="test-description">请选择正确的中文翻译</p>
+                        
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div id="test-progress" class="progress-fill"></div>
+                            </div>
+                            <p>题目 <span id="test-question-num">1</span> / <span id="test-total-questions">10</span></p>
+                        </div>
+                        
+                        <div class="test-question">
+                            <div class="word-title" id="test-word" style="font-size: 2.5em; margin: 30px 0;">abandon</div>
+                            
+                            <div class="test-options" id="test-options">
+                                <!-- 选项将动态生成 -->
+                            </div>
+                        </div>
+                        
+                        <div id="test-feedback" class="hidden" style="margin: 20px 0;">
+                            <p id="feedback-text"></p>
+                            <button class="btn" onclick="nextTestQuestion()">下一题</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 测试完成结果 -->
+                <div id="mastery-test-result" class="hidden">
+                    <div class="level-result">
+                        <div class="level-badge">🎯</div>
+                        <h3>掌握度测试完成！</h3>
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="mastered-count">0</div>
+                                <div class="stat-label">完全掌握</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="need-review-count">0</div>
+                                <div class="stat-label">需要复习</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="test-accuracy">0%</div>
+                                <div class="stat-label">测试准确率</div>
+                            </div>
+                        </div>
+                        
+                        <div id="mastery-details" style="margin: 20px 0; text-align: left;"></div>
+                        
+                        <button class="btn" onclick="finishMasteryTest()">完成测试</button>
+                        <button class="btn" onclick="retestWeakWords()" id="retest-btn" class="hidden">重测薄弱单词</button>
+                    </div>
+                </div>
+                
+                <!-- 掌握度测试界面 -->
+                <div id="mastery-test" class="hidden">
+                    <div class="word-card">
+                        <div class="text-center">
+                            <h3>🎯 掌握度测试</h3>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="test-progress" style="width: 0%"></div>
+                            </div>
+                            <p>题目 <span id="test-question-num">1</span> / <span id="test-total-questions">20</span></p>
+                        </div>
+                        
+                        <div class="word-title" id="test-word" style="text-align: center; margin: 30px 0;">abandon</div>
+                        <div class="word-translation" style="text-align: center; margin-bottom: 30px;">请选择正确的中文释义：</div>
+                        
+                        <div id="test-options" style="max-width: 500px; margin: 0 auto;"></div>
+                        
+                        <div id="test-feedback" class="hidden" style="text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+                            <div id="feedback-text"></div>
+                            <button class="btn" onclick="nextTestQuestion()" style="margin-top: 15px;">下一题</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 掌握度测试结果 -->
+                <div id="mastery-test-result" class="hidden">
+                    <div class="level-result">
+                        <div class="level-badge">🎯</div>
+                        <h3>掌握度测试完成！</h3>
+                        <p>测试结果统计</p>
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="mastered-count">0</div>
+                                <div class="stat-label">完全掌握</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="need-review-count">0</div>
+                                <div class="stat-label">需要复习</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="test-accuracy">0%</div>
+                                <div class="stat-label">测试准确率</div>
+                            </div>
+                        </div>
+                        
+                        <div id="mastery-details" style="text-align: left; margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.2); border-radius: 10px;"></div>
+                        
+                        <button class="btn" onclick="finishMasteryTest()">完成测试</button>
+                        <button class="btn" id="retest-btn" onclick="retestWeakWords()" class="hidden" style="background: #FF9800;">重测薄弱单词</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 复习管理 -->
+            <div id="review" class="tab-content">
+                <h2>🔄 智能复习管理</h2>
+                <p>基于艾宾浩斯遗忘曲线，科学安排复习时间</p>
+                
+                <div class="review-schedule" id="review-schedule">
+                    <!-- 复习项目将动态生成 -->
+                </div>
+                
+                <div class="text-center">
+                    <button class="btn" onclick="startReview()">开始复习</button>
+                    <button class="btn" onclick="clearReviewData()">清除复习数据</button>
+                </div>
+            </div>
+
+            <!-- 学习统计 -->
+            <div id="stats" class="tab-content">
+                <h2>📈 学习统计</h2>
+                
+                <div class="stats" id="learning-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="total-learned">0</div>
+                        <div class="stat-label">已学单词</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="total-reviewed">0</div>
+                        <div class="stat-label">已复习次数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="study-days">0</div>
+                        <div class="stat-label">学习天数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="current-streak">0</div>
+                        <div class="stat-label">连续学习</div>
+                    </div>
+                </div>
+                
+                <div class="study-plan">
+                    <h3>📊 学习进度</h3>
+                    <div id="progress-charts"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 词汇数据存储
+        let vocabularyData = {};
+        let currentTest = {
+            questions: [],
+            currentIndex: 0,
+            correctAnswers: 0,
+            userLevel: 0
+        };
+        
+        // 学习数据
+        let learningData = {
+            userLevel: 0,
+            studyPlan: [],
+            reviewSchedule: [],
+            learnedWords: [],
+            stats: {
+                totalLearned: 0,
+                totalReviewed: 0,
+                studyDays: 0,
+                currentStreak: 0,
+                lastStudyDate: null
+            }
+        };
+        
+        // 词汇级别定义
+        const levels = {
+            1: { name: '初中', file: '1-初中-顺序.json', vocab: 1500, description: '掌握基础词汇，能进行简单交流' },
+            2: { name: '高中', file: '2-高中-顺序.json', vocab: 3500, description: '词汇量达到高中水平，能理解一般文章' },
+            3: { name: 'CET4', file: '3-CET4-顺序.json', vocab: 4500, description: '达到大学英语四级水平' },
+            4: { name: 'CET6', file: '4-CET6-顺序.json', vocab: 6000, description: '达到大学英语六级水平' },
+            5: { name: '托福', file: '6-托福-顺序.json', vocab: 8000, description: '具备托福考试所需词汇量' },
+            6: { name: 'SAT', file: '7-SAT-顺序.json', vocab: 12000, description: '达到SAT考试高分水平' }
+        };
+        
+        // 遗忘曲线间隔（天）
+        const forgettingCurve = [1, 3, 7, 15, 30, 60];
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadVocabularyData();
+            loadLearningData();
+            updateStats();
+            updateReviewSchedule();
+            initializeSpeech(); // 添加这行
+        });
+        
+        // 加载词汇数据
+        async function loadVocabularyData() {
+            try {
+                for (let level in levels) {
+                    const response = await fetch(levels[level].file);
+                    const data = await response.json();
+                    vocabularyData[level] = data;
+                }
+                console.log('词汇数据加载完成');
+            } catch (error) {
+                console.error('加载词汇数据失败:', error);
+                alert('加载词汇数据失败，请确保JSON文件在正确位置');
+            }
+        }
+        
+        // 切换标签页
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 移除所有标签的active类
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签内容
+            document.getElementById(tabName).classList.add('active');
+            
+            // 添加active类到选中的标签
+            event.target.classList.add('active');
+            
+            // 更新相应内容
+            if (tabName === 'stats') {
+                updateStats();
+            } else if (tabName === 'review') {
+                updateReviewSchedule();
+            }
+        }
+        
+        // 开始测试
+        function startTest() {
+            currentTest = {
+                questions: [],
+                currentIndex: 0,
+                correctAnswers: 0,
+                userLevel: 0
+            };
+            
+            generateTestQuestions();
+            showQuestion();
+            
+            document.getElementById('test-start').classList.add('hidden');
+            document.getElementById('test-question').classList.remove('hidden');
+            document.getElementById('test-result').classList.add('hidden');
+        }
+        
+        // 生成测试题目
+        function generateTestQuestions() {
+            const totalQuestions = 20;
+            currentTest.questions = [];
+            
+            // 从各个级别随机选择单词
+            for (let i = 0; i < totalQuestions; i++) {
+                const level = Math.floor(Math.random() * 6) + 1;
+                const words = vocabularyData[level];
+                if (words && words.length > 0) {
+                    const randomWord = words[Math.floor(Math.random() * words.length)];
+                    const question = createQuestion(randomWord, level);
+                    currentTest.questions.push(question);
+                }
+            }
+        }
+        
+        // 创建单个问题
+        function createQuestion(wordData, level) {
+            const correctTranslation = wordData.translations[0].translation;
+            const options = [correctTranslation];
+            
+            // 生成3个错误选项
+            while (options.length < 4) {
+                const randomLevel = Math.floor(Math.random() * 6) + 1;
+                const randomWords = vocabularyData[randomLevel];
+                if (randomWords && randomWords.length > 0) {
+                    const randomWord = randomWords[Math.floor(Math.random() * randomWords.length)];
+                    const randomTranslation = randomWord.translations[0].translation;
+                    if (!options.includes(randomTranslation)) {
+                        options.push(randomTranslation);
+                    }
+                }
+            }
+            
+            // 打乱选项顺序
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            
+            return {
+                word: wordData.word,
+                correctAnswer: correctTranslation,
+                options: options,
+                level: level,
+                answered: false,
+                correct: false
+            };
+        }
+        
+        // 显示问题
+        function showQuestion() {
+            const question = currentTest.questions[currentTest.currentIndex];
+            
+            document.getElementById('test-word-text').textContent = question.word;
+            document.getElementById('question-num').textContent = currentTest.currentIndex + 1;
+            document.getElementById('total-questions').textContent = currentTest.questions.length;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectOption(index, option);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            document.getElementById('next-btn').disabled = true;
+            
+            // 更新进度条
+            const progress = ((currentTest.currentIndex + 1) / currentTest.questions.length) * 100;
+            document.getElementById('test-progress').style.width = progress + '%';
+        }
+        
+        // 测试界面语音播放功能
+        function speakTestWord() {
+            const wordText = document.getElementById('test-word-text').textContent;
+            
+            // 检查浏览器是否支持语音合成
+            if ('speechSynthesis' in window) {
+                // 停止当前播放的语音
+                speechSynthesis.cancel();
+                
+                // 创建语音合成实例
+                const utterance = new SpeechSynthesisUtterance(wordText);
+                
+                // 设置语音参数
+                utterance.lang = 'en-US'; // 美式英语
+                utterance.rate = 0.8; // 语速稍慢，便于学习
+                utterance.pitch = 1; // 音调
+                utterance.volume = 1; // 音量
+                
+                // 播放语音
+                speechSynthesis.speak(utterance);
+            } else {
+                alert('您的浏览器不支持语音功能，建议使用Chrome、Firefox或Safari浏览器。');
+            }
+        }
+        
+        // 选择选项
+        function selectOption(index, selectedAnswer) {
+            const question = currentTest.questions[currentTest.currentIndex];
+            const options = document.querySelectorAll('.option');
+            
+            // 清除之前的选择
+            options.forEach(option => {
+                option.classList.remove('selected', 'correct', 'wrong');
+            });
+            
+            // 标记选中的选项
+            options[index].classList.add('selected');
+            
+            // 检查答案
+            const isCorrect = selectedAnswer === question.correctAnswer;
+            question.answered = true;
+            question.correct = isCorrect;
+            
+            if (isCorrect) {
+                options[index].classList.add('correct');
+                currentTest.correctAnswers++;
+            } else {
+                options[index].classList.add('wrong');
+                // 显示正确答案
+                options.forEach(option => {
+                    if (option.textContent === question.correctAnswer) {
+                        option.classList.add('correct');
+                    }
+                });
+            }
+            
+            document.getElementById('next-btn').disabled = false;
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            currentTest.currentIndex++;
+            
+            if (currentTest.currentIndex < currentTest.questions.length) {
+                showQuestion();
+            } else {
+                showTestResult();
+            }
+        }
+        
+        // 跳过问题
+        function skipQuestion() {
+            const question = currentTest.questions[currentTest.currentIndex];
+            question.answered = true;
+            question.correct = false;
+            nextQuestion();
+        }
+        
+        // 显示测试结果
+        function showTestResult() {
+            const accuracy = (currentTest.correctAnswers / currentTest.questions.length) * 100;
+            
+            // 根据正确率和答对的高级词汇确定用户级别
+            let userLevel = 1;
+            if (accuracy >= 80) userLevel = 6;
+            else if (accuracy >= 70) userLevel = 5;
+            else if (accuracy >= 60) userLevel = 4;
+            else if (accuracy >= 50) userLevel = 3;
+            else if (accuracy >= 40) userLevel = 2;
+            
+            currentTest.userLevel = userLevel;
+            learningData.userLevel = userLevel;
+            
+            const level = levels[userLevel];
+            
+            document.getElementById('result-level').textContent = level.name;
+            document.getElementById('result-title').textContent = `您的词汇水平：${level.name}`;
+            document.getElementById('result-description').textContent = level.description;
+            document.getElementById('correct-count').textContent = currentTest.correctAnswers;
+            document.getElementById('accuracy-rate').textContent = Math.round(accuracy) + '%';
+            document.getElementById('estimated-vocab').textContent = level.vocab;
+            
+            document.getElementById('test-question').classList.add('hidden');
+            document.getElementById('test-result').classList.remove('hidden');
+            
+            saveLearningData();
+        }
+        
+        // 重新开始测试
+        function restartTest() {
+            document.getElementById('test-result').classList.add('hidden');
+            document.getElementById('test-start').classList.remove('hidden');
+            document.getElementById('test-progress').style.width = '0%';
+        }
+        
+        // 生成学习计划
+        function generateStudyPlan() {
+            const userLevel = learningData.userLevel;
+            const plan = [];
+            
+            // 为当前级别和下一级别生成学习计划
+            for (let level = userLevel; level <= Math.min(userLevel + 1, 6); level++) {
+                const levelData = levels[level];
+                const words = vocabularyData[level] || [];
+                
+                plan.push({
+                    level: level,
+                    name: levelData.name,
+                    totalWords: words.length,
+                    dailyTarget: 20,
+                    estimatedDays: Math.ceil(words.length / 20),
+                    words: words
+                });
+            }
+            
+            learningData.studyPlan = plan;
+            saveLearningData();
+            
+            // 切换到学习计划标签
+            switchTab('study');
+            updateStudyPlan();
+        }
+        
+        // 更新学习计划显示
+        function updateStudyPlan() {
+            if (learningData.studyPlan.length === 0) {
+                document.getElementById('no-plan').classList.remove('hidden');
+                document.getElementById('study-plan-content').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('no-plan').classList.add('hidden');
+            document.getElementById('study-plan-content').classList.remove('hidden');
+            
+            const currentLevel = levels[learningData.userLevel];
+            document.getElementById('current-goal').innerHTML = `
+                <div class="plan-item">
+                    <div>
+                        <strong>目标级别：${currentLevel.name}</strong><br>
+                        <span>目标词汇量：${currentLevel.vocab} 词</span>
+                    </div>
+                    <div class="stat-number">${Math.round((learningData.stats.totalLearned / currentLevel.vocab) * 100)}%</div>
+                </div>
+            `;
+            
+            const planList = document.getElementById('plan-list');
+            planList.innerHTML = '';
+            
+            learningData.studyPlan.forEach(plan => {
+                const planElement = document.createElement('div');
+                planElement.className = 'plan-item';
+                planElement.innerHTML = `
+                    <div>
+                        <strong>${plan.name} 级别</strong><br>
+                        <span>共 ${plan.totalWords} 词，每日 ${plan.dailyTarget} 词，预计 ${plan.estimatedDays} 天</span>
+                    </div>
+                    <button class="btn" onclick="startLevelStudy(${plan.level})">开始学习</button>
+                `;
+                planList.appendChild(planElement);
+            });
+            
+            updateDailyWords();
+        }
+        
+        // 更新今日学习单词
+        function updateDailyWords() {
+            const dailyWordsContainer = document.getElementById('daily-words');
+            const today = new Date().toDateString();
+            
+            // 获取今日应学习的单词
+            const todayWords = getTodayWords();
+            
+            if (todayWords.length === 0) {
+                dailyWordsContainer.innerHTML = '<p>今日学习任务已完成！</p>';
+                return;
+            }
+            
+            dailyWordsContainer.innerHTML = `
+                <p>今日需要学习 ${todayWords.length} 个新单词</p>
+                <div class="word-preview">
+                    ${todayWords.slice(0, 5).map(word => `<span class="word-tag">${word.word}</span>`).join('')}
+                    ${todayWords.length > 5 ? '...' : ''}
+                </div>
+            `;
+        }
+        
+        // 获取今日应学习的单词
+        function getTodayWords() {
+            const dailyTarget = 20;
+            const learnedWords = learningData.learnedWords.map(w => w.word);
+            
+            for (let plan of learningData.studyPlan) {
+                const unlearned = plan.words.filter(word => !learnedWords.includes(word.word));
+                if (unlearned.length > 0) {
+                    return unlearned.slice(0, dailyTarget);
+                }
+            }
+            
+            return [];
+        }
+        
+        // 开始今日学习
+        function startDailyStudy() {
+            const todayWords = getTodayWords();
+            if (todayWords.length === 0) {
+                alert('今日学习任务已完成！');
+                return;
+            }
+            
+            // 使用学习界面
+            currentStudySession = {
+                words: todayWords,
+                currentIndex: 0,
+                knownWords: [],
+                unknownWords: [],
+                level: learningData.userLevel,
+                levelName: '今日学习'
+            };
+            
+            showStudySession();
+        }
+        
+        // 添加到已学习单词
+        function addToLearned(wordData, masteryLevel = 'learned') {
+            const learnedWord = {
+                word: wordData.word,
+                translation: wordData.translations[0].translation,
+                level: getCurrentWordLevel(wordData.word),
+                learnDate: new Date().toISOString(),
+                reviewCount: 0,
+                nextReview: getNextReviewDate(0),
+                masteryLevel: masteryLevel // 'learned', 'mastered'
+            };
+            
+            // 避免重复添加
+            const existing = learningData.learnedWords.find(w => w.word === wordData.word);
+            if (!existing) {
+                learningData.learnedWords.push(learnedWord);
+                learningData.stats.totalLearned++;
+            }
+            
+            saveLearningData();
+        }
+        
+        // 获取单词所属级别
+        function getCurrentWordLevel(word) {
+            for (let level in vocabularyData) {
+                if (vocabularyData[level].some(w => w.word === word)) {
+                    return parseInt(level);
+                }
+            }
+            return 1;
+        }
+        
+        // 获取下次复习日期
+        function getNextReviewDate(reviewCount) {
+            const days = forgettingCurve[Math.min(reviewCount, forgettingCurve.length - 1)];
+            const nextDate = new Date();
+            nextDate.setDate(nextDate.getDate() + days);
+            return nextDate.toISOString();
+        }
+        
+        // 当前学习会话数据
+        let currentStudySession = {
+            words: [],
+            currentIndex: 0,
+            knownWords: [],
+            unknownWords: [],
+            level: 1,
+            levelName: '',
+            // 测试相关数据
+            testMode: false,
+            testWords: [],
+            testCurrentIndex: 0,
+            testResults: {}, // 记录每个单词的测试结果
+            masteredWords: [], // 连续3次正确的单词
+            needRetestWords: [] // 需要重新测试的单词
+        };
+        
+        // 开始指定级别的学习
+        function startLevelStudy(level) {
+            const levelData = levels[level];
+            const words = vocabularyData[level] || [];
+            
+            if (words.length === 0) {
+                alert(`${levelData.name} 级别的词汇数据未加载，请刷新页面重试`);
+                return;
+            }
+            
+            // 获取该级别未学习的单词
+            const learnedWords = learningData.learnedWords.map(w => w.word);
+            const unlearnedWords = words.filter(word => !learnedWords.includes(word.word));
+            
+            if (unlearnedWords.length === 0) {
+                alert(`恭喜！您已完成 ${levelData.name} 级别的所有单词学习！`);
+                return;
+            }
+            
+            // 初始化学习会话
+            currentStudySession = {
+                words: unlearnedWords.slice(0, 20), // 每次学习20个单词
+                currentIndex: 0,
+                knownWords: [],
+                unknownWords: [],
+                level: level,
+                levelName: levelData.name
+            };
+            
+            // 显示学习界面
+            showStudySession();
+        }
+        
+        // 显示学习界面
+        function showStudySession() {
+            // 隐藏学习计划，显示学习界面
+            document.getElementById('study-plan-content').classList.add('hidden');
+            document.getElementById('study-session').classList.remove('hidden');
+            document.getElementById('study-result').classList.add('hidden');
+            
+            // 更新界面信息
+            document.getElementById('study-level-title').textContent = `正在学习：${currentStudySession.levelName} 级别`;
+            document.getElementById('study-total-words').textContent = currentStudySession.words.length;
+            
+            // 显示当前单词
+            showCurrentStudyWord();
+        }
+        
+        // 显示当前学习单词
+        function showCurrentStudyWord() {
+            const word = currentStudySession.words[currentStudySession.currentIndex];
+            
+            // 更新单词显示（包含发音按钮）
+            document.getElementById('study-current-word').innerHTML = `
+                <span>${word.word}</span>
+                <button class="btn" onclick="speakWord()" style="padding: 8px 15px; font-size: 14px; background: #2196F3;">🔊 发音</button>
+            `;
+            
+            document.getElementById('study-word-translation').textContent = word.translations[0].translation;
+            
+            // 显示例句（如果有）
+            const phrasesContainer = document.getElementById('study-word-phrases');
+            if (word.phrases && word.phrases.length > 0) {
+                phrasesContainer.textContent = `例句: ${word.phrases[0].phrase}`;
+                phrasesContainer.style.display = 'block';
+            } else {
+                phrasesContainer.style.display = 'none';
+            }
+            
+            // 更新进度
+            document.getElementById('study-word-num').textContent = currentStudySession.currentIndex + 1;
+            const progress = ((currentStudySession.currentIndex + 1) / currentStudySession.words.length) * 100;
+            document.getElementById('study-progress').style.width = progress + '%';
+            
+            // 自动发音（可选，如果不需要可以注释掉）
+            autoSpeakCurrentWord();
+        }
+        
+        // 语音合成相关
+        let speechSynthesis = window.speechSynthesis;
+        let currentVoice = null;
+        
+        // 初始化语音
+        function initializeSpeech() {
+            // 等待语音列表加载完成
+            if (speechSynthesis.getVoices().length === 0) {
+                speechSynthesis.addEventListener('voiceschanged', selectEnglishVoice);
+            } else {
+                selectEnglishVoice();
+            }
+        }
+        
+        // 选择英语语音
+        function selectEnglishVoice() {
+            const voices = speechSynthesis.getVoices();
+            
+            // 优先选择英语语音，按优先级排序
+            const preferredVoices = [
+                'Alex',           // macOS 英语男声
+                'Samantha',       // macOS 英语女声
+                'Google US English', // Chrome 英语
+                'Microsoft David',   // Windows 英语
+                'Microsoft Zira'     // Windows 英语
+            ];
+            
+            // 查找首选语音
+            for (let preferred of preferredVoices) {
+                const voice = voices.find(v => v.name.includes(preferred));
+                if (voice) {
+                    currentVoice = voice;
+                    console.log('选择语音:', voice.name);
+                    return;
+                }
+            }
+            
+            // 如果没找到首选语音，选择第一个英语语音
+            const englishVoice = voices.find(v => 
+                v.lang.startsWith('en') && 
+                (v.lang.includes('US') || v.lang.includes('GB'))
+            );
+            
+            if (englishVoice) {
+                currentVoice = englishVoice;
+                console.log('选择英语语音:', englishVoice.name);
+            } else {
+                console.log('未找到英语语音，使用默认语音');
+            }
+        }
+        
+        // 发音函数
+        function speakWord(word) {
+            // 如果没有传入单词，使用当前显示的单词
+            if (!word) {
+                const wordElement = document.getElementById('study-current-word');
+                if (wordElement) {
+                    // 提取单词文本（去除发音按钮）
+                    const wordSpan = wordElement.querySelector('span');
+                    word = wordSpan ? wordSpan.textContent : wordElement.textContent.split('🔊')[0].trim();
+                }
+            }
+            
+            if (!word) {
+                console.log('没有找到要发音的单词');
+                return;
+            }
+            
+            // 停止当前播放的语音
+            speechSynthesis.cancel();
+            
+            // 创建语音合成实例
+            const utterance = new SpeechSynthesisUtterance(word);
+            
+            // 设置语音参数
+            if (currentVoice) {
+                utterance.voice = currentVoice;
+            }
+            utterance.lang = 'en-US';  // 设置为美式英语
+            utterance.rate = 0.8;      // 语速稍慢，便于学习
+            utterance.pitch = 1.0;     // 正常音调
+            utterance.volume = 1.0;    // 最大音量
+            
+            // 发音事件处理
+            utterance.onstart = function() {
+                console.log('开始发音:', word);
+                // 可以在这里添加视觉反馈，比如按钮变色
+                const speakBtn = document.querySelector('button[onclick="speakWord()"]');
+                if (speakBtn) {
+                    speakBtn.style.background = '#4CAF50';
+                    speakBtn.textContent = '🔊 播放中...';
+                }
+            };
+            
+            utterance.onend = function() {
+                console.log('发音结束:', word);
+                // 恢复按钮状态
+                const speakBtn = document.querySelector('button[onclick="speakWord()"]');
+                if (speakBtn) {
+                    speakBtn.style.background = '#2196F3';
+                    speakBtn.textContent = '🔊 发音';
+                }
+            };
+            
+            utterance.onerror = function(event) {
+                console.error('发音错误:', event.error);
+                alert('发音功能暂时不可用，请检查浏览器设置');
+            };
+            
+            // 开始发音
+            speechSynthesis.speak(utterance);
+        }
+        
+        // 自动发音（可选）
+        function autoSpeakCurrentWord() {
+            // 延迟一点时间，确保界面更新完成
+            setTimeout(() => {
+                speakWord();
+            }, 500);
+        }
+        
+
+        
+        // 标记单词认识状态
+        function markWordKnown(isKnown) {
+            const word = currentStudySession.words[currentStudySession.currentIndex];
+            
+            if (isKnown) {
+                currentStudySession.knownWords.push(word);
+                // 认识的词直接添加到已学习列表
+                addToLearned(word);
+            } else {
+                currentStudySession.unknownWords.push(word);
+            }
+            
+            nextStudyWord();
+        }
+        
+        // 跳过当前单词
+        function skipStudyWord() {
+            // 跳过的单词视为不认识
+            const word = currentStudySession.words[currentStudySession.currentIndex];
+            currentStudySession.unknownWords.push(word);
+            nextStudyWord();
+        }
+        
+        // 下一个学习单词
+        function nextStudyWord() {
+            currentStudySession.currentIndex++;
+            
+            if (currentStudySession.currentIndex < currentStudySession.words.length) {
+                showCurrentStudyWord();
+            } else {
+                showStudyResult();
+            }
+        }
+        
+        // 显示学习结果
+        function showStudyResult() {
+            document.getElementById('study-session').classList.add('hidden');
+            document.getElementById('study-result').classList.remove('hidden');
+            
+            const knownCount = currentStudySession.knownWords.length;
+            const unknownCount = currentStudySession.unknownWords.length;
+            const totalCount = currentStudySession.words.length;
+            const masteryRate = Math.round((knownCount / totalCount) * 100);
+            
+            document.getElementById('study-result-title').textContent = `${currentStudySession.levelName} 级别学习完成！`;
+            document.getElementById('study-result-description').textContent = `本次学习了 ${totalCount} 个单词，掌握率 ${masteryRate}%`;
+            document.getElementById('study-known-count').textContent = knownCount;
+            document.getElementById('study-unknown-count').textContent = unknownCount;
+            document.getElementById('study-mastery-rate').textContent = masteryRate + '%';
+            
+            // 添加测试按钮
+            const resultContainer = document.querySelector('#study-result .level-result');
+            const existingTestBtn = document.getElementById('start-mastery-test-btn');
+            if (!existingTestBtn && knownCount > 0) {
+                const testButton = document.createElement('button');
+                testButton.id = 'start-mastery-test-btn';
+                testButton.className = 'btn';
+                testButton.style.background = '#FF9800';
+                testButton.style.marginTop = '15px';
+                testButton.textContent = `开始掌握度测试 (${knownCount}个单词)`;
+                testButton.onclick = startMasteryTest;
+                
+                const finishBtn = resultContainer.querySelector('button[onclick="finishStudySession()"]');
+                resultContainer.insertBefore(testButton, finishBtn);
+            }
+        }
+        
+        // 开始掌握度测试
+        function startMasteryTest() {
+            // 初始化测试数据
+            currentStudySession.testMode = true;
+            currentStudySession.testWords = [...currentStudySession.knownWords];
+            currentStudySession.testCurrentIndex = 0;
+            currentStudySession.testResults = {};
+            currentStudySession.masteredWords = [];
+            currentStudySession.needRetestWords = [];
+            
+            // 为每个单词初始化测试记录
+            currentStudySession.testWords.forEach(word => {
+                currentStudySession.testResults[word.word] = {
+                    attempts: 0,
+                    correctCount: 0,
+                    consecutiveCorrect: 0,
+                    isMastered: false
+                };
+            });
+            
+            // 显示测试界面
+            document.getElementById('study-result').classList.add('hidden');
+            document.getElementById('mastery-test').classList.remove('hidden');
+            
+            showTestQuestion();
+        }
+        
+        // 显示测试题目
+        function showTestQuestion() {
+            if (currentStudySession.testCurrentIndex >= currentStudySession.testWords.length) {
+                // 检查是否还有未掌握的单词需要重测
+                const needRetest = currentStudySession.testWords.filter(word => 
+                    !currentStudySession.testResults[word.word].isMastered
+                );
+                
+                if (needRetest.length > 0) {
+                    // 重新测试未掌握的单词
+                    currentStudySession.testWords = needRetest;
+                    currentStudySession.testCurrentIndex = 0;
+                    showTestQuestion();
+                    return;
+                } else {
+                    // 所有单词都测试完成
+                    showMasteryTestResult();
+                    return;
+                }
+            }
+            
+            const currentWord = currentStudySession.testWords[currentStudySession.testCurrentIndex];
+            const wordResult = currentStudySession.testResults[currentWord.word];
+            
+            // 如果已经掌握，跳到下一个
+            if (wordResult.isMastered) {
+                currentStudySession.testCurrentIndex++;
+                showTestQuestion();
+                return;
+            }
+            
+            // 更新界面
+            document.getElementById('test-word').textContent = currentWord.word;
+            document.getElementById('test-question-num').textContent = currentStudySession.testCurrentIndex + 1;
+            document.getElementById('test-total-questions').textContent = currentStudySession.testWords.length;
+            
+            // 更新进度条
+            const progress = ((currentStudySession.testCurrentIndex + 1) / currentStudySession.testWords.length) * 100;
+            document.getElementById('test-progress').style.width = progress + '%';
+            
+            // 生成选项
+            generateTestOptions(currentWord);
+            
+            // 隐藏反馈
+            document.getElementById('test-feedback').classList.add('hidden');
+        }
+        
+        // 生成测试选项
+        function generateTestOptions(currentWord) {
+            const correctAnswer = currentWord.translations[0].translation;
+            const options = [correctAnswer];
+            
+            // 从其他单词中随机选择3个错误选项
+            const allWords = Object.values(vocabularyData).flat();
+            const wrongOptions = [];
+            
+            while (wrongOptions.length < 3) {
+                const randomWord = allWords[Math.floor(Math.random() * allWords.length)];
+                const wrongAnswer = randomWord.translations[0].translation;
+                
+                if (wrongAnswer !== correctAnswer && !wrongOptions.includes(wrongAnswer)) {
+                    wrongOptions.push(wrongAnswer);
+                }
+            }
+            
+            options.push(...wrongOptions);
+            
+            // 打乱选项顺序
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            
+            // 生成选项HTML
+            const optionsContainer = document.getElementById('test-options');
+            optionsContainer.innerHTML = '';
+            
+            options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'btn test-option';
+                button.style.cssText = 'display: block; width: 100%; margin: 10px 0; padding: 15px; font-size: 16px;';
+                button.textContent = option;
+                button.onclick = () => selectTestOption(option, correctAnswer);
+                optionsContainer.appendChild(button);
+            });
+        }
+        
+        // 选择测试选项
+        function selectTestOption(selectedOption, correctAnswer) {
+            const currentWord = currentStudySession.testWords[currentStudySession.testCurrentIndex];
+            const wordResult = currentStudySession.testResults[currentWord.word];
+            
+            wordResult.attempts++;
+            
+            const isCorrect = selectedOption === correctAnswer;
+            const feedbackElement = document.getElementById('feedback-text');
+            
+            if (isCorrect) {
+                wordResult.correctCount++;
+                wordResult.consecutiveCorrect++;
+                
+                // 检查是否连续3次正确
+                if (wordResult.consecutiveCorrect >= 3) {
+                    wordResult.isMastered = true;
+                    currentStudySession.masteredWords.push(currentWord);
+                    feedbackElement.innerHTML = `<span style="color: #4CAF50;">✅ 正确！</span><br><strong>🎉 恭喜！您已完全掌握这个单词！</strong>`;
+                } else {
+                    feedbackElement.innerHTML = `<span style="color: #4CAF50;">✅ 正确！</span><br>连续正确 ${wordResult.consecutiveCorrect}/3 次`;
+                }
+            } else {
+                wordResult.consecutiveCorrect = 0; // 重置连续正确计数
+                feedbackElement.innerHTML = `<span style="color: #f44336;">❌ 错误</span><br>正确答案：<strong>${correctAnswer}</strong>`;
+            }
+            
+            // 禁用所有选项
+            document.querySelectorAll('.test-option').forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent === correctAnswer) {
+                    btn.style.background = '#4CAF50';
+                } else if (btn.textContent === selectedOption && !isCorrect) {
+                    btn.style.background = '#f44336';
+                }
+            });
+            
+            // 显示反馈
+            document.getElementById('test-feedback').classList.remove('hidden');
+        }
+        
+        // 下一个测试题目
+        function nextTestQuestion() {
+            currentStudySession.testCurrentIndex++;
+            showTestQuestion();
+        }
+        
+        // 显示掌握度测试结果
+        function showMasteryTestResult() {
+            document.getElementById('mastery-test').classList.add('hidden');
+            document.getElementById('mastery-test-result').classList.remove('hidden');
+            
+            const masteredCount = currentStudySession.masteredWords.length;
+            const totalTested = currentStudySession.knownWords.length;
+            const needReviewCount = totalTested - masteredCount;
+            
+            // 计算总体准确率
+            let totalAttempts = 0;
+            let totalCorrect = 0;
+            
+            Object.values(currentStudySession.testResults).forEach(result => {
+                totalAttempts += result.attempts;
+                totalCorrect += result.correctCount;
+            });
+            
+            const accuracy = totalAttempts > 0 ? Math.round((totalCorrect / totalAttempts) * 100) : 0;
+            
+            // 更新统计显示
+            document.getElementById('mastered-count').textContent = masteredCount;
+            document.getElementById('need-review-count').textContent = needReviewCount;
+            document.getElementById('test-accuracy').textContent = accuracy + '%';
+            
+            // 显示详细结果
+            const detailsContainer = document.getElementById('mastery-details');
+            let detailsHTML = '<h4>测试详情：</h4>';
+            
+            if (masteredCount > 0) {
+                detailsHTML += '<div style="color: #4CAF50; margin: 10px 0;"><strong>✅ 完全掌握的单词：</strong><br>';
+                detailsHTML += currentStudySession.masteredWords.map(word => word.word).join(', ');
+                detailsHTML += '</div>';
+            }
+            
+            if (needReviewCount > 0) {
+                const needReviewWords = currentStudySession.knownWords.filter(word => 
+                    !currentStudySession.testResults[word.word].isMastered
+                );
+                detailsHTML += '<div style="color: #FF9800; margin: 10px 0;"><strong>📚 需要继续复习：</strong><br>';
+                detailsHTML += needReviewWords.map(word => word.word).join(', ');
+                detailsHTML += '</div>';
+                
+                // 显示重测按钮
+                document.getElementById('retest-btn').classList.remove('hidden');
+            }
+            
+            detailsContainer.innerHTML = detailsHTML;
+        }
+        
+        // 重测薄弱单词
+        function retestWeakWords() {
+            const needRetestWords = currentStudySession.knownWords.filter(word => 
+                !currentStudySession.testResults[word.word].isMastered
+            );
+            
+            if (needRetestWords.length === 0) {
+                alert('没有需要重测的单词！');
+                return;
+            }
+            
+            // 重置这些单词的测试记录
+            needRetestWords.forEach(word => {
+                currentStudySession.testResults[word.word] = {
+                    attempts: 0,
+                    correctCount: 0,
+                    consecutiveCorrect: 0,
+                    isMastered: false
+                };
+            });
+            
+            // 重新开始测试
+            currentStudySession.testWords = needRetestWords;
+            currentStudySession.testCurrentIndex = 0;
+            
+            document.getElementById('mastery-test-result').classList.add('hidden');
+            document.getElementById('mastery-test').classList.remove('hidden');
+            
+            showTestQuestion();
+        }
+        
+        // 完成掌握度测试
+        function finishMasteryTest() {
+            // 将完全掌握的单词标记为已掌握
+            currentStudySession.masteredWords.forEach(word => {
+                const existingWord = learningData.learnedWords.find(w => w.word === word.word);
+                if (existingWord) {
+                    existingWord.masteryLevel = 'mastered';
+                    existingWord.masteryTestDate = new Date().toISOString();
+                } else {
+                    addToLearned(word, 'mastered');
+                }
+            });
+            
+            // 将未掌握的单词加入复习计划
+            const needReviewWords = currentStudySession.knownWords.filter(word => 
+                !currentStudySession.testResults[word.word].isMastered
+            );
+            
+            needReviewWords.forEach(word => {
+                addToReviewSchedule(word);
+            });
+            
+            // 更新统计
+            updateStats();
+            updateStudyPlan();
+            updateReviewSchedule();
+            
+            // 返回学习计划页面
+            document.getElementById('mastery-test-result').classList.add('hidden');
+            document.getElementById('study-plan-content').classList.remove('hidden');
+            
+            const masteredCount = currentStudySession.masteredWords.length;
+            const totalCount = currentStudySession.knownWords.length;
+            
+            alert(`掌握度测试完成！\n完全掌握：${masteredCount} 个单词\n需要复习：${totalCount - masteredCount} 个单词`);
+        }
+        
+        // 完成学习会话
+        function finishStudySession() {
+            // 将不认识的词加入复习计划
+            currentStudySession.unknownWords.forEach(word => {
+                addToReviewSchedule(word);
+            });
+            
+            // 更新统计
+            updateStats();
+            updateStudyPlan();
+            updateReviewSchedule();
+            
+            // 返回学习计划页面
+            document.getElementById('study-result').classList.add('hidden');
+            document.getElementById('study-plan-content').classList.remove('hidden');
+            
+            alert(`学习完成！已掌握 ${currentStudySession.knownWords.length} 个新单词。`);
+        }
+        
+        // 复习不认识的单词
+        function reviewUnknownWords() {
+            if (currentStudySession.unknownWords.length === 0) {
+                alert('没有需要复习的单词！');
+                return;
+            }
+            
+            // 重新开始学习不认识的单词
+            currentStudySession.words = currentStudySession.unknownWords;
+            currentStudySession.currentIndex = 0;
+            currentStudySession.knownWords = [];
+            currentStudySession.unknownWords = [];
+            
+            showStudySession();
+        }
+        
+        // 添加到复习计划
+        function addToReviewSchedule(wordData) {
+            const reviewWord = {
+                word: wordData.word,
+                translation: wordData.translations[0].translation,
+                level: currentStudySession.level,
+                addDate: new Date().toISOString(),
+                reviewCount: 0,
+                nextReview: getNextReviewDate(0),
+                difficulty: 'hard', // 不认识的词标记为困难
+                masteryLevel: 'learned'
+            };
+            
+            // 避免重复添加
+            const existing = learningData.learnedWords.find(w => w.word === wordData.word);
+            if (!existing) {
+                learningData.learnedWords.push(reviewWord);
+            }
+            
+            saveLearningData();
+        }
+        
+        // 更新复习计划
+        function updateReviewSchedule() {
+            const today = new Date();
+            const reviewSchedule = document.getElementById('review-schedule');
+            
+            // 获取需要复习的单词
+            const wordsToReview = learningData.learnedWords.filter(word => {
+                const reviewDate = new Date(word.nextReview);
+                return reviewDate <= today;
+            });
+            
+            const upcomingReviews = learningData.learnedWords.filter(word => {
+                const reviewDate = new Date(word.nextReview);
+                return reviewDate > today && reviewDate <= new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            });
+            
+            reviewSchedule.innerHTML = `
+                <div class="review-item due">
+                    <h3>🔥 需要复习</h3>
+                    <div class="stat-number">${wordsToReview.length}</div>
+                    <p>个单词</p>
+                </div>
+                <div class="review-item">
+                    <h3>📅 本周计划</h3>
+                    <div class="stat-number">${upcomingReviews.length}</div>
+                    <p>个单词</p>
+                </div>
+                <div class="review-item">
+                    <h3>✅ 已掌握</h3>
+                    <div class="stat-number">${learningData.learnedWords.filter(w => w.reviewCount >= 5).length}</div>
+                    <p>个单词</p>
+                </div>
+                <div class="review-item">
+                    <h3>📚 总学习</h3>
+                    <div class="stat-number">${learningData.learnedWords.length}</div>
+                    <p>个单词</p>
+                </div>
+            `;
+        }
+        
+        // 开始复习
+        function startReview() {
+            const today = new Date();
+            const wordsToReview = learningData.learnedWords.filter(word => {
+                const reviewDate = new Date(word.nextReview);
+                return reviewDate <= today;
+            });
+            
+            if (wordsToReview.length === 0) {
+                alert('暂无需要复习的单词！');
+                return;
+            }
+            
+            // 这里可以实现复习界面
+            alert(`开始复习 ${wordsToReview.length} 个单词！\n\n${wordsToReview.slice(0, 3).map(w => w.word).join(', ')}...`);
+            
+            // 模拟复习完成
+            wordsToReview.forEach(word => {
+                word.reviewCount++;
+                word.nextReview = getNextReviewDate(word.reviewCount);
+                learningData.stats.totalReviewed++;
+            });
+            
+            saveLearningData();
+            updateReviewSchedule();
+            updateStats();
+        }
+        
+        // 清除复习数据
+        function clearReviewData() {
+            if (confirm('确定要清除所有学习数据吗？此操作不可恢复。')) {
+                learningData = {
+                    userLevel: 0,
+                    studyPlan: [],
+                    reviewSchedule: [],
+                    learnedWords: [],
+                    stats: {
+                        totalLearned: 0,
+                        totalReviewed: 0,
+                        studyDays: 0,
+                        currentStreak: 0,
+                        lastStudyDate: null
+                    }
+                };
+                saveLearningData();
+                updateStats();
+                updateReviewSchedule();
+                updateStudyPlan();
+                alert('学习数据已清除！');
+            }
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            document.getElementById('total-learned').textContent = learningData.stats.totalLearned;
+            document.getElementById('total-reviewed').textContent = learningData.stats.totalReviewed;
+            document.getElementById('study-days').textContent = learningData.stats.studyDays;
+            document.getElementById('current-streak').textContent = learningData.stats.currentStreak;
+            
+            // 更新学习进度图表
+            updateProgressCharts();
+        }
+        
+        // 更新进度图表
+        function updateProgressCharts() {
+            const chartsContainer = document.getElementById('progress-charts');
+            
+            // 按级别统计学习进度
+            const levelProgress = {};
+            for (let level = 1; level <= 6; level++) {
+                const levelWords = vocabularyData[level] || [];
+                const learnedInLevel = learningData.learnedWords.filter(w => w.level === level).length;
+                levelProgress[level] = {
+                    name: levels[level].name,
+                    total: levelWords.length,
+                    learned: learnedInLevel,
+                    percentage: levelWords.length > 0 ? Math.round((learnedInLevel / levelWords.length) * 100) : 0
+                };
+            }
+            
+            chartsContainer.innerHTML = Object.values(levelProgress).map(level => `
+                <div class="plan-item">
+                    <div>
+                        <strong>${level.name}</strong><br>
+                        <span>${level.learned} / ${level.total} 词</span>
+                    </div>
+                    <div class="stat-number">${level.percentage}%</div>
+                </div>
+            `).join('');
+        }
+        
+        // 保存学习数据
+        function saveLearningData() {
+            localStorage.setItem('vocabularyLearningData', JSON.stringify(learningData));
+        }
+        
+        // 加载学习数据
+        function loadLearningData() {
+            const saved = localStorage.getItem('vocabularyLearningData');
+            if (saved) {
+                learningData = JSON.parse(saved);
+                updateStudyPlan();
+            }
+        }
+    </script>
+</body>
+</html>
