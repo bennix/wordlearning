@@ -1,5 +1,10 @@
 # 🎓 智能词汇学习系统
 
+> **License / 许可:** Original code authored by bennix: **GPL-3.0-only**.
+> Upstream and third-party material retain their original terms and notices.
+> See [LICENSE](LICENSE) and [LICENSING.md](LICENSING.md) for the current licensing scope.
+
+
 一个基于科学记忆理论的智能英语词汇学习应用，集成词汇量测试、个性化学习计划、智能复习管理和学习统计等功能。
 
 ## ✨ 主要功能
@@ -130,7 +135,7 @@ wordlearning/
 
 ## 📄 许可证
 
-本项目采用MIT许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+本项目中 bennix 原创代码采用 GPL-3.0-only - 查看 [LICENSE](LICENSE) 文件了解详情
 
 ## 🤝 贡献
 
